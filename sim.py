@@ -35,7 +35,7 @@ def calculate_radius(mass):
     """
     Calculate the radius based on the mass of the body using cube root scaling.
     """
-    a = math.cbrt(mass) * MASS_SCALE
+    a = math.cbrt(mass) * MASS_SCALE *5
     return int(a)
 
 running = True
