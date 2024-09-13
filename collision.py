@@ -21,7 +21,7 @@ def calculate_radius(mass):
     """
     Calculate the radius based on the mass of the body using cube root scaling.
     """
-    MASS_SCALE = 1e-10
+    MASS_SCALE = 1e-10  # Adjust this to control the radius scaling
     return int(math.cbrt(mass) * MASS_SCALE)
 
 def handle_collision(body1, body2):
@@ -42,7 +42,13 @@ def handle_collision(body1, body2):
     else:
         new_x, new_y = body2.x, body2.y
 
-    # Create a new body with the combined mass, velocity, and position
-    new_body = Body(new_x, new_y, new_mass, new_vx, new_vy, color=(255, 165, 0))  # Merge color to orange
+    # Blend the colors of the two bodies based on mass
+    def blend_colors(color1, color2, weight1, weight2):
+        return tuple(int((c1 * weight1 + c2 * weight2) / (weight1 + weight2)) for c1, c2 in zip(color1, color2))
+    
+    new_color = blend_colors(body1.color, body2.color, body1.mass, body2.mass)
+    
+    # Create a new body with the combined mass, velocity, position, and blended color
+    new_body = Body(new_x, new_y, new_mass, new_vx, new_vy, color=new_color)
 
     return new_body

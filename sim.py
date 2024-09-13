@@ -5,9 +5,9 @@ import math
 
 # Constants
 SCALE = 1e8  # Initial scale for rendering
-TIMESTEP = 400  # Adjust timestep for faster simulation
+TIMESTEP = 4000  # Adjust timestep for faster simulation
 MASS_SCALE = 1e-10  # Adjust this value to control size scaling based on mass
-PAN_SPEED = 0.2  # Slow down panning by applying this factor
+PAN_SPEED = 0.5  # Slow down panning by applying this factor
 
 # Pygame setup
 pygame.init()
@@ -16,11 +16,10 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 clock = pygame.time.Clock()
 
 # Define three celestial bodies with realistic masses
-body1 = Body(x=-1e11, y=0, mass=1.9885e33, vx=0, vy=29780, color=(255, 255, 0))  # Sun
-body2 = Body(x=1e11, y=0, mass=5.972e24, vx=0, vy=-29780, color=(0, 0, 255))  # Earth
-body3 = Body(x=0, y=1.5e11, mass=5.972e24, vx=-29780, vy=0, color=(255, 0, 0))  # Earth-like planet
+body1 = Body(x=1e11, y=0, mass=1.9885e30, vx=0, vy=36430.54, color=(255, 255, 0))  # Sun
+body2 = Body(x=-1e11, y=0, mass=1.9885e30, vx=0, vy=36430.54, color=(0, 0, 255))  # Earth
 
-bodies = [body1, body2, body3]
+bodies = [body1, body2]
 
 # Zoom control variables
 zoom_factor = 1.1  # Scale for zooming in and out
