@@ -17,7 +17,7 @@ clock = pygame.time.Clock()
 
 # Define three celestial bodies with realistic masses
 body1 = Body(x=1e11, y=0, mass=1.9885e30, vx=0, vy=36430.54, color=(255, 255, 0))  # Sun
-body2 = Body(x=-1e11, y=0, mass=1.9885e30, vx=0, vy=36430.54, color=(0, 0, 255))  # Earth
+body2 = Body(x=-1e11, y=0, mass=1.9885e27, vx=0, vy=36430.54, color=(0, 0, 255))  # Earth
 
 bodies = [body1, body2]
 
