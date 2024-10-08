@@ -5,7 +5,7 @@ import math
 
 # Constants
 SCALE = 1e8  # Initial scale for rendering
-TIMESTEP = 100000  # Adjust timestep for faster simulation
+TIMESTEP = 1000000  # Adjust timestep for faster simulation
 MASS_SCALE = 1e-10  # Adjust this value to control size scaling based on mass
 PAN_SPEED = 0.5  # Slow down panning by applying this factor
 
