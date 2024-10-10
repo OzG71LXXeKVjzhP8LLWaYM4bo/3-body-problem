@@ -32,7 +32,6 @@ def create_celestial_bodies():
     moon_orbit = 3.844e8  # average distance from Earth
     moon_velocity = math.sqrt(G * body2.mass / moon_orbit)
     body3 = Body(x=body2.x + moon_orbit, y=0, mass=7.35e22, vx=0, vy=moon_velocity - earth_velocity, color=(128, 128, 128))
-    body3 = Body(x=body2.x + moon_orbit, y=0, mass=7.35e22, vx=moon_velocity, vy=0, color=(128, 128, 128))
 
     return [body1, body2, body3]
 
@@ -100,8 +99,6 @@ def main():
     running = True
 
     while running:
-        screen.fill((0, 0, 0))
-
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -145,10 +142,15 @@ def main():
             bodies[i] = merged_body  # Replace one of the bodies with the merged body
             bodies.pop(j)  # Remove the other body
 
-        # Update positions and draw bodies
+        # Update positions
         for body in bodies:
             body.update_position(TIMESTEP)
 
+        # Clear the screen
+        screen.fill((0, 0, 0))
+
+        # Draw bodies
+        for body in bodies:
             # Adjust body positions based on the current scale and pan offsets
             body_x = int(body.x / scale + 400 + zoom_controller.pan_offset_x)
             body_y = int(body.y / scale + 300 + zoom_controller.pan_offset_y)
