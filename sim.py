@@ -5,7 +5,7 @@ import math
 
 # Constants
 SCALE = 1e8  # Initial scale for rendering
-TIMESTEP = 10000  # Adjust timestep for faster simulation
+TIMESTEP = 1000000  # Adjust timestep for faster simulation
 MASS_SCALE = 1e-10  # Adjust this value to control size scaling based on mass
 PAN_SPEED = 0.5  # Slow down panning by applying this factor
 
@@ -22,18 +22,48 @@ def create_celestial_bodies():
     # Sun
     body1 = Body(x=0, y=0, mass=1.9885e30, vx=0, vy=0, color=(255, 255, 0))
 
+    # Mercury
+    mercury_orbit = 5.791e10  # average distance from Sun
+    G = 6.674e-11  # gravitational constant
+    mercury_velocity = math.sqrt(G * body1.mass / mercury_orbit)
+    body2 = Body(x=mercury_orbit, y=0, mass=3.302e23, vx=0, vy=-mercury_velocity, color=(128, 128, 128))
+
+    # Venus
+    venus_orbit = 1.082e11  # average distance from Sun
+    venus_velocity = math.sqrt(G * body1.mass / venus_orbit)
+    body3 = Body(x=venus_orbit, y=0, mass=4.869e24, vx=0, vy=-venus_velocity, color=(255, 128, 128))
+
     # Earth
     earth_orbit = 1.496e11  # average distance from Sun
-    G = 6.674e-11  # gravitational constant
     earth_velocity = math.sqrt(G * body1.mass / earth_orbit)
-    body2 = Body(x=earth_orbit, y=0, mass=5.972e24, vx=0, vy=-earth_velocity, color=(0, 0, 255))
+    body4 = Body(x=earth_orbit, y=0, mass=5.972e24, vx=0, vy=-earth_velocity, color=(0, 0, 255))
 
-    # Moon
-    moon_orbit = 3.844e8  # average distance from Earth
-    moon_velocity = math.sqrt(G * body2.mass / moon_orbit)
-    body3 = Body(x=body2.x + moon_orbit, y=0, mass=7.35e22, vx=0, vy=moon_velocity - earth_velocity, color=(128, 128, 128))
+    # Mars
+    mars_orbit = 2.279e11  # average distance from Sun
+    mars_velocity = math.sqrt(G * body1.mass / mars_orbit)
+    body5 = Body(x=mars_orbit, y=0, mass=6.39e23, vx=0, vy=-mars_velocity, color=(255, 0, 0))
 
-    return [body1, body2, body3]
+    # Jupiter
+    jupiter_orbit = 7.783e11  # average distance from Sun
+    jupiter_velocity = math.sqrt(G * body1.mass / jupiter_orbit)
+    body6 = Body(x=jupiter_orbit, y=0, mass=1.898e27, vx=0, vy=-jupiter_velocity, color=(255, 255, 128))
+
+    # Saturn
+    saturn_orbit = 1.43e12  # average distance from Sun
+    saturn_velocity = math.sqrt(G * body1.mass / saturn_orbit)
+    body7 = Body(x=saturn_orbit, y=0, mass=5.68e26, vx=0, vy=-saturn_velocity, color=(128, 128, 255))
+
+    # Uranus
+    uranus_orbit = 2.88e12  # average distance from Sun
+    uranus_velocity = math.sqrt(G * body1.mass / uranus_orbit)
+    body8 = Body(x=uranus_orbit, y=0, mass=8.68e25, vx=0, vy=-uranus_velocity, color=(0, 255, 0))
+
+    # Neptune
+    neptune_orbit = 4.497e12  # average distance from Sun
+    neptune_velocity = math.sqrt(G * body1.mass / neptune_orbit)
+    body9 = Body(x=neptune_orbit, y=0, mass=1.02e26, vx=0, vy=-neptune_velocity, color=(0, 0, 128))
+
+    return [body1, body2, body3, body4, body5, body6, body7, body8, body9]
 
 # Zoom control variables
 class ZoomController:
