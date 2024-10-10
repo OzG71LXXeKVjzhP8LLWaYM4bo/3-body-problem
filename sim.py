@@ -32,6 +32,7 @@ def create_celestial_bodies():
     moon_orbit = 3.844e8  # average distance from Earth
     moon_velocity = math.sqrt(G * body2.mass / moon_orbit)
     body3 = Body(x=body2.x + moon_orbit, y=0, mass=7.35e22, vx=0, vy=moon_velocity - earth_velocity, color=(128, 128, 128))
+    body3 = Body(x=body2.x + moon_orbit, y=0, mass=7.35e22, vx=moon_velocity, vy=0, color=(128, 128, 128))
 
     return [body1, body2, body3]
 
