@@ -5,7 +5,7 @@ import math
 
 # Constants
 SCALE = 1e8  # Initial scale for rendering
-TIMESTEP = 1000000  # Adjust timestep for faster simulation
+TIMESTEP = 10000  # Adjust timestep for faster simulation
 MASS_SCALE = 1e-10  # Adjust this value to control size scaling based on mass
 PAN_SPEED = 0.5  # Slow down panning by applying this factor
 
@@ -28,7 +28,12 @@ def create_celestial_bodies():
     earth_velocity = math.sqrt(G * body1.mass / earth_orbit)
     body2 = Body(x=earth_orbit, y=0, mass=5.972e24, vx=0, vy=-earth_velocity, color=(0, 0, 255))
 
-    return [body1, body2]
+    # Moon
+    moon_orbit = 3.844e8  # average distance from Earth
+    moon_velocity = math.sqrt(G * body2.mass / moon_orbit)
+    body3 = Body(x=body2.x + moon_orbit, y=0, mass=7.35e22, vx=0, vy=moon_velocity - earth_velocity, color=(128, 128, 128))
+
+    return [body1, body2, body3]
 
 # Zoom control variables
 class ZoomController:
@@ -71,25 +76,6 @@ class PanController:
     def stop_panning(self):
         self.is_panning = False
 
-    def pan(self, mouse_x, mouse_y):
-        if self.is_panning:
-            pan_offset_x = (mouse_x - self.mouse_start_x) * PAN_SPEED
-            pan_offset_y = (mouse_y - self.mouse_start_y) * PAN_SPEED
-            self.mouse_start_x, self.mouse_start_y = mouse_x, mouse_y
-            return pan_offset_x, pan_offset_y
-        return 0, 0
-    
-# Define celestial bodies
-def create_celestial_bodies():
-    # Sun
-    body1 = Body(x=0, y=0, mass=1.9885e30, vx=0, vy=0, color=(255, 255, 0))
-
-    # Earth
-    earth_orbit = 1.496e11  # average distance from Sun
-    earth_velocity = 29.78e3  # velocity at perihelion
-    body2 = Body(x=earth_orbit, y=0, mass=5.972e24, vx=0, vy=earth_velocity, color=(0, 0, 255))
-
-    return [body1, body2]
     def pan(self, mouse_x, mouse_y):
         if self.is_panning:
             pan_offset_x = (mouse_x - self.mouse_start_x) * PAN_SPEED
