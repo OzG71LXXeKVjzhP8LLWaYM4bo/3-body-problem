@@ -156,8 +156,8 @@ def main():
         if len(bodies) >= 2:
             distance = math.hypot(bodies[0].x - bodies[1].x, bodies[0].y - bodies[1].y)
 
-        # Dump data to file once every orbit
-        if time_in_simulator - last_dump_time >= 2 * math.pi:
+        # Dump data to file once every year
+        if time_in_simulator - last_dump_time >= 24 * 3600 * 365:
             with open('output.csv', 'a', newline='') as f:
                 writer = csv.writer(f)
                 writer.writerow([
