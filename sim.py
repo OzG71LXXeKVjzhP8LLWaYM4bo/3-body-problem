@@ -20,14 +20,18 @@ def initialize_pygame():
 
 # Define celestial bodies
 def create_celestial_bodies():
-    # Body 1 and 2: Same mass and stable orbit
-    mass = 1e25
+    # Body 1 and 2: Same mass but not in a stable orbit
+    mass1 = 1e25
+    mass2 = 1e25
     orbit = 1e10
-    velocity = math.sqrt(6.674e-11 * mass / orbit)
-    body1 = Body(x=0, y=0, mass=mass, vx=0, vy=0, color=(255, 0, 0))
-    body2 = Body(x=orbit, y=0, mass=mass, vx=0, vy=-velocity, color=(0, 0, 255))
+    velocity1 = math.sqrt(6.674e-11 * mass1 / orbit)
+    velocity2 = math.sqrt(6.674e-11 * mass2 / orbit) # Slightly slower velocity
+
+    body1 = Body(x=0, y=0, mass=mass1, vx=0, vy=0, color=(255, 0, 0))
+    body2 = Body(x=orbit, y=0, mass=mass2, vx=0, vy=-velocity2, color=(0, 0, 255))
 
     return [body1, body2]
+
 
 
 # Zoom control variables
@@ -155,6 +159,10 @@ def main():
         # Calculate distance between the two bodies
         if len(bodies) >= 2:
             distance = math.hypot(bodies[0].x - bodies[1].x, bodies[0].y - bodies[1].y)
+
+            # Stop the sim if the planets are touching
+            if distance < (calculate_radius(bodies[0].mass) + calculate_radius(bodies[1].mass)):
+                running = False
 
         # Dump data to file once every year
         if time_in_simulator - last_dump_time >= 24 * 3600 * 365:
