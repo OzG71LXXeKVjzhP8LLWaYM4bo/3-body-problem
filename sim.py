@@ -2,10 +2,11 @@ import pygame
 from gravity import Body, update_velocities
 from collision import check_collision, handle_collision
 import math
+import csv
 
 # Constants
 SCALE = 1e8  # Initial scale for rendering
-TIMESTEP = 1000000  # Adjust timestep for faster simulation
+TIMESTEP = 2000000  # Adjust timestep for faster simulation
 MASS_SCALE = 1e-10  # Adjust this value to control size scaling based on mass
 PAN_SPEED = 0.5  # Slow down panning by applying this factor
 
@@ -19,50 +20,15 @@ def initialize_pygame():
 
 # Define celestial bodies
 def create_celestial_bodies():
-    # Sun
-    body1 = Body(x=0, y=0, mass=1.9885e30, vx=0, vy=0, color=(255, 255, 0))
+    # Body 1 and 2: Same mass and stable orbit
+    mass = 1e25
+    orbit = 1e10
+    velocity = math.sqrt(6.674e-11 * mass / orbit)
+    body1 = Body(x=0, y=0, mass=mass, vx=0, vy=0, color=(255, 0, 0))
+    body2 = Body(x=orbit, y=0, mass=mass, vx=0, vy=-velocity, color=(0, 0, 255))
 
-    # Mercury
-    mercury_orbit = 5.791e10  # average distance from Sun
-    mercury_velocity = math.sqrt(6.674e-11 * body1.mass / mercury_orbit)
-    body2 = Body(x=mercury_orbit, y=0, mass=3.302e23, vx=0, vy=-mercury_velocity, color=(128, 128, 128))
+    return [body1, body2]
 
-    # Venus
-    venus_orbit = 1.082e11  # average distance from Sun
-    venus_velocity = math.sqrt(6.674e-11 * body1.mass / venus_orbit)
-    body3 = Body(x=venus_orbit, y=0, mass=4.869e24, vx=0, vy=-venus_velocity, color=(255, 128, 128))
-
-    # Earth
-    earth_orbit = 1.496e11  # average distance from Sun
-    earth_velocity = math.sqrt(6.674e-11 * body1.mass / earth_orbit)
-    body4 = Body(x=earth_orbit, y=0, mass=5.972e24, vx=0, vy=-earth_velocity, color=(0, 0, 255))
-
-    # Mars
-    mars_orbit = 2.279e11  # average distance from Sun
-    mars_velocity = math.sqrt(6.674e-11 * body1.mass / mars_orbit)
-    body5 = Body(x=mars_orbit, y=0, mass=6.39e23, vx=0, vy=-mars_velocity, color=(255, 0, 0))
-
-    # Jupiter
-    jupiter_orbit = 7.783e11  # average distance from Sun
-    jupiter_velocity = math.sqrt(6.674e-11 * body1.mass / jupiter_orbit)
-    body6 = Body(x=jupiter_orbit, y=0, mass=1.898e27, vx=0, vy=-jupiter_velocity, color=(255, 255, 128))
-
-    # Saturn
-    saturn_orbit = 1.43e12  # average distance from Sun
-    saturn_velocity = math.sqrt(6.674e-11 * body1.mass / saturn_orbit)
-    body7 = Body(x=saturn_orbit, y=0, mass=5.68e26, vx=0, vy=-saturn_velocity, color=(128, 128, 255))
-
-    # Uranus
-    uranus_orbit = 2.88e12  # average distance from Sun
-    uranus_velocity = math.sqrt(6.674e-11 * body1.mass / uranus_orbit)
-    body8 = Body(x=uranus_orbit, y=0, mass=8.68e25, vx=0, vy=-uranus_velocity, color=(0, 255, 0))
-
-    # Neptune
-    neptune_orbit = 4.497e12  # average distance from Sun
-    neptune_velocity = math.sqrt(6.674e-11 * body1.mass / neptune_orbit)
-    body9 = Body(x=neptune_orbit, y=0, mass=1.02e26, vx=0, vy=-neptune_velocity, color=(0, 0, 128))
-
-    return [body1, body2, body3, body4, body5, body6, body7, body8, body9]
 
 # Zoom control variables
 class ZoomController:
@@ -126,6 +92,17 @@ def main():
     pan_controller = PanController()
     scale = SCALE
     running = True
+    time_in_simulator = 0
+    last_dump_time = 0
+
+    with open('output.csv', 'w', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow([
+            'time',
+            'distance',
+            'body1_vx', 'body1_vy',
+            'body2_vx', 'body2_vy',
+        ])
 
     while running:
         for event in pygame.event.get():
@@ -175,6 +152,22 @@ def main():
         for body in bodies:
             body.update_position(TIMESTEP)
 
+        # Calculate distance between the two bodies
+        if len(bodies) >= 2:
+            distance = math.hypot(bodies[0].x - bodies[1].x, bodies[0].y - bodies[1].y)
+
+        # Dump data to file once every orbit
+        if time_in_simulator - last_dump_time >= 2 * math.pi:
+            with open('output.csv', 'a', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow([
+                    round(time_in_simulator / (24 * 3600 * 365), 2),
+                    round(distance / 1000, 2),
+                    round(bodies[0].vx / 1000, 2), round(bodies[0].vy / 1000, 2),
+                    round(bodies[1].vx / 1000, 2), round(bodies[1].vy / 1000, 2),
+                ])
+            last_dump_time = time_in_simulator
+
         # Clear the screen
         screen.fill((0, 0, 0))
 
@@ -195,8 +188,11 @@ def main():
 
         pygame.display.flip()
         clock.tick(60)  # 60 FPS
+        time_in_simulator += TIMESTEP
 
     pygame.quit()
+
+
 
 if __name__ == "__main__":
     main()
