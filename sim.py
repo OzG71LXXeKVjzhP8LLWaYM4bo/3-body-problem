@@ -3,6 +3,7 @@ from gravity import Body, update_velocities
 from collision import check_collision, handle_collision
 import math
 import csv
+import threading
 
 # Constants
 SCALE = 1e8  # Initial scale for rendering
@@ -108,7 +109,57 @@ def main():
             'body2_vx', 'body2_vy',
         ])
 
-    while running:
+    def worker():
+        nonlocal bodies, time_in_simulator, last_dump_time
+        while True:
+            # List to keep track of bodies to merge
+            bodies_to_merge = []
+
+            # Update forces and velocities
+            for i in range(len(bodies)):
+                for j in range(i + 1, len(bodies)):
+                    if check_collision(bodies[i], bodies[j]):
+                        # Mark these bodies for merging
+                        merged_body = handle_collision(bodies[i], bodies[j])
+                        bodies_to_merge.append((i, j, merged_body))
+                    else:
+                        update_velocities(bodies[i], bodies[j], TIMESTEP)
+
+            # Handle merging after all checks are done
+            for (i, j, merged_body) in bodies_to_merge:
+                bodies[i] = merged_body  # Replace one of the bodies with the merged body
+                bodies.pop(j)  # Remove the other body
+
+            # Update positions
+            for body in bodies:
+                body.update_position(TIMESTEP)
+
+            # Calculate distance between the two bodies
+            if len(bodies) >= 2:
+                distance = math.hypot(bodies[0].x - bodies[1].x, bodies[0].y - bodies[1].y)
+
+                # Stop the sim if the planets are touching
+                if distance < (calculate_radius(bodies[0].mass) + calculate_radius(bodies[1].mass)):
+                    break
+
+            # Dump data to file once every year
+            if time_in_simulator - last_dump_time >= 24 * 3600 * 365:
+                with open('output.csv', 'a', newline='') as f:
+                    writer = csv.writer(f)
+                    writer.writerow([
+                        round(time_in_simulator / (24 * 3600 * 365), 2),
+                        round(distance / 1000, 2),
+                        round(bodies[0].vx / 1000, 2), round(bodies[0].vy / 1000, 2),
+                        round(bodies[1].vx / 1000, 2), round(bodies[1].vy / 1000, 2),
+                    ])
+                last_dump_time = time_in_simulator
+
+            time_in_simulator += TIMESTEP
+
+    t = threading.Thread(target=worker)
+    t.start()
+
+    while t.is_alive():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -134,48 +185,6 @@ def main():
                 zoom_controller.pan_offset_x += pan_offset_x
                 zoom_controller.pan_offset_y += pan_offset_y
 
-        # List to keep track of bodies to merge
-        bodies_to_merge = []
-
-        # Update forces and velocities
-        for i in range(len(bodies)):
-            for j in range(i + 1, len(bodies)):
-                if check_collision(bodies[i], bodies[j]):
-                    # Mark these bodies for merging
-                    merged_body = handle_collision(bodies[i], bodies[j])
-                    bodies_to_merge.append((i, j, merged_body))
-                else:
-                    update_velocities(bodies[i], bodies[j], TIMESTEP)
-
-        # Handle merging after all checks are done
-        for (i, j, merged_body) in bodies_to_merge:
-            bodies[i] = merged_body  # Replace one of the bodies with the merged body
-            bodies.pop(j)  # Remove the other body
-
-        # Update positions
-        for body in bodies:
-            body.update_position(TIMESTEP)
-
-        # Calculate distance between the two bodies
-        if len(bodies) >= 2:
-            distance = math.hypot(bodies[0].x - bodies[1].x, bodies[0].y - bodies[1].y)
-
-            # Stop the sim if the planets are touching
-            if distance < (calculate_radius(bodies[0].mass) + calculate_radius(bodies[1].mass)):
-                running = False
-
-        # Dump data to file once every year
-        if time_in_simulator - last_dump_time >= 24 * 3600 * 365:
-            with open('output.csv', 'a', newline='') as f:
-                writer = csv.writer(f)
-                writer.writerow([
-                    round(time_in_simulator / (24 * 3600 * 365), 2),
-                    round(distance / 1000, 2),
-                    round(bodies[0].vx / 1000, 2), round(bodies[0].vy / 1000, 2),
-                    round(bodies[1].vx / 1000, 2), round(bodies[1].vy / 1000, 2),
-                ])
-            last_dump_time = time_in_simulator
-
         # Clear the screen
         screen.fill((0, 0, 0))
 
@@ -196,8 +205,8 @@ def main():
 
         pygame.display.flip()
         clock.tick(60)  # 60 FPS
-        time_in_simulator += TIMESTEP
 
+    t.join()
     pygame.quit()
 
 
