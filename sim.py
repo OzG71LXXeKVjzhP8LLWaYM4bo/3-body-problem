@@ -110,6 +110,8 @@ def main():
             for body in bodies:
                 body.update_position(TIMESTEP)
 
+            time_in_simulator += TIMESTEP
+
             if time_in_simulator % (24 * 3600 * 365) < TIMESTEP:
                 with open('output.csv', 'a', newline='') as f:
                     writer = csv.writer(f)
@@ -120,15 +122,13 @@ def main():
                         round(bodies[1].vx / 1000, 2), round(bodies[1].vy / 1000, 2),
                     ])
 
-            time_in_simulator += TIMESTEP
-
     t = threading.Thread(target=worker)
     t.start()
 
     while t.is_alive():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                running = False
+                quit()
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 4:
