@@ -1,6 +1,5 @@
 import pygame
 from gravity import Body, update_velocities
-from collision import check_collision, handle_collision
 import math
 import csv
 import threading
@@ -11,7 +10,6 @@ TIMESTEP = 2000000  # Adjust timestep for faster simulation
 MASS_SCALE = 1e-10  # Adjust this value to control size scaling based on mass
 PAN_SPEED = 0.5  # Slow down panning by applying this factor
 
-# Pygame setup
 def initialize_pygame():
     pygame.init()
     WIDTH, HEIGHT = 800, 600
@@ -19,14 +17,11 @@ def initialize_pygame():
     clock = pygame.time.Clock()
     return screen, clock
 
-# Define celestial bodies
 def create_celestial_bodies():
-    # Body 1 and 2: Same mass but not in a stable orbit
     mass1 = 1e25
     mass2 = 1e25
     orbit = 1e10
-    velocity1 = math.sqrt(6.674e-11 * mass1 / orbit)
-    velocity2 = math.sqrt(6.674e-11 * mass2 / orbit) * 1.99# Slightly slower velocity
+    velocity2 = math.sqrt(6.674e-11 * mass2 / orbit) * 1.99
 
     body1 = Body(x=0, y=0, mass=mass1, vx=0, vy=0, color=(255, 0, 0))
     body2 = Body(x=orbit, y=0, mass=mass2, vx=0, vy=-velocity2, color=(0, 0, 255))
@@ -38,10 +33,10 @@ def create_celestial_bodies():
 # Zoom control variables
 class ZoomController:
     def __init__(self):
-        self.zoom_factor = 1.1  # Scale for zooming in and out
+        self.zoom_factor = 1.1
         self.min_scale = 1e7
         self.max_scale = 1e12
-        self.pan_offset_x, self.pan_offset_y = 0, 0  # Initial pan offsets
+        self.pan_offset_x, self.pan_offset_y = 0, 0
 
     def zoom_in(self, mouse_x, mouse_y, scale):
         zoom_point_x = (mouse_x - 400 - self.pan_offset_x) * scale
@@ -63,7 +58,6 @@ class ZoomController:
             scale = self.max_scale
         return scale
 
-# Pan control variables
 class PanController:
     def __init__(self):
         self.is_panning = False
@@ -84,7 +78,6 @@ class PanController:
             return pan_offset_x, pan_offset_y
         return 0, 0
 
-# Calculate radius based on mass
 def calculate_radius(mass):
     a = math.cbrt(mass) * MASS_SCALE * 5
     return int(a)
@@ -96,9 +89,7 @@ def main():
     zoom_controller = ZoomController()
     pan_controller = PanController()
     scale = SCALE
-    running = True
     time_in_simulator = 0
-    last_dump_time = 0
 
     with open('output.csv', 'w', newline='') as f:
         writer = csv.writer(f)
@@ -110,49 +101,24 @@ def main():
         ])
 
     def worker():
-        nonlocal bodies, time_in_simulator, last_dump_time
+        nonlocal bodies, time_in_simulator
         while True:
-            # List to keep track of bodies to merge
-            bodies_to_merge = []
-
-            # Update forces and velocities
             for i in range(len(bodies)):
                 for j in range(i + 1, len(bodies)):
-                    if check_collision(bodies[i], bodies[j]):
-                        # Mark these bodies for merging
-                        merged_body = handle_collision(bodies[i], bodies[j])
-                        bodies_to_merge.append((i, j, merged_body))
-                    else:
-                        update_velocities(bodies[i], bodies[j], TIMESTEP)
+                    update_velocities(bodies[i], bodies[j], TIMESTEP)
 
-            # Handle merging after all checks are done
-            for (i, j, merged_body) in bodies_to_merge:
-                bodies[i] = merged_body  # Replace one of the bodies with the merged body
-                bodies.pop(j)  # Remove the other body
-
-            # Update positions
             for body in bodies:
                 body.update_position(TIMESTEP)
 
-            # Calculate distance between the two bodies
-            if len(bodies) >= 2:
-                distance = math.hypot(bodies[0].x - bodies[1].x, bodies[0].y - bodies[1].y)
-
-                # Stop the sim if the planets are touching
-                if distance < (calculate_radius(bodies[0].mass) + calculate_radius(bodies[1].mass)):
-                    break
-
-            # Dump data to file once every year
-            if time_in_simulator - last_dump_time >= 24 * 3600 * 365:
+            if time_in_simulator % (24 * 3600 * 365) < TIMESTEP:
                 with open('output.csv', 'a', newline='') as f:
                     writer = csv.writer(f)
                     writer.writerow([
                         round(time_in_simulator / (24 * 3600 * 365), 2),
-                        round(distance / 1000, 2),
+                        round(math.hypot(bodies[0].x - bodies[1].x, bodies[0].y - bodies[1].y) / 1000, 2),
                         round(bodies[0].vx / 1000, 2), round(bodies[0].vy / 1000, 2),
                         round(bodies[1].vx / 1000, 2), round(bodies[1].vy / 1000, 2),
                     ])
-                last_dump_time = time_in_simulator
 
             time_in_simulator += TIMESTEP
 
@@ -165,10 +131,10 @@ def main():
                 running = False
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 4:  # Scroll up -> zoom in
+                if event.button == 4:
                     mouse_x, mouse_y = pygame.mouse.get_pos()
                     scale = zoom_controller.zoom_in(mouse_x, mouse_y, scale)
-                elif event.button == 5:  # Scroll down -> zoom out
+                elif event.button == 5:
                     mouse_x, mouse_y = pygame.mouse.get_pos()
                     scale = zoom_controller.zoom_out(mouse_x, mouse_y, scale)
 
@@ -185,26 +151,21 @@ def main():
                 zoom_controller.pan_offset_x += pan_offset_x
                 zoom_controller.pan_offset_y += pan_offset_y
 
-        # Clear the screen
         screen.fill((0, 0, 0))
 
-        # Draw bodies
         for body in bodies:
-            # Adjust body positions based on the current scale and pan offsets
             body_x = int(body.x / scale + 400 + zoom_controller.pan_offset_x)
             body_y = int(body.y / scale + 300 + zoom_controller.pan_offset_y)
 
-            # Calculate the radius based on mass
             body_radius = calculate_radius(body.mass)
 
-            # Ensure a minimum size for visibility
             if body_radius < 1:
                 body_radius = 1
 
             pygame.draw.circle(screen, body.color, (body_x, body_y), body_radius)
 
         pygame.display.flip()
-        clock.tick(60)  # 60 FPS
+        clock.tick(60)
 
     t.join()
     pygame.quit()
