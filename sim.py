@@ -21,7 +21,7 @@ def create_celestial_bodies():
     mass1 = 1e25
     mass2 = 1e25
     orbit = 1e10
-    velocity2 = math.sqrt(6.674e-11 * mass2 / orbit) * 1.99
+    velocity2 = math.sqrt(6.674e-11 * mass2 / orbit)
 
     body1 = Body(x=0, y=0, mass=mass1, vx=0, vy=0, color=(255, 0, 0))
     body2 = Body(x=orbit, y=0, mass=mass2, vx=0, vy=-velocity2, color=(0, 0, 255))
